@@ -21,7 +21,7 @@
       />
     </aside>
     <header class="header">
-      <h1>Vue dragging demo</h1>
+      <h1>Vue ...ing demo</h1>
       <button @click="undo" :disabled="!undoable">
         <svg style="width: 24px; height: 24px" viewBox="0 0 24 24">
           <path
@@ -71,15 +71,20 @@
         {{ step }}
       </span>
       <template v-if="history">
-        <DemoBlock
-          v-for="item in scene"
+        <TreeNode
+          v-for="item in tree"
           :id="item.id"
-          :x="gridToCanvas(item.x, item.y).x"
-          :y="gridToCanvas(item.x, item.y).y"
+          :x="item.x"
+          :y="item.y"
+          :dx="100"
+          :dy="100"
           :size="80"
           :color="item.color"
           :content="item.content"
           :key="item.id"
+          :t="tree"
+          :left="tree"
+          :right1="item.right"
         />
       </template>
     </main>
@@ -88,6 +93,7 @@
 <script>
 import { nanoid } from "nanoid";
 import DemoBlock from "./components/DemoBlock.vue";
+import TreeNode from "./components/TreeNode.vue";
 import {
   initialize,
   addState,
@@ -97,12 +103,14 @@ import {
   undo,
   redo,
 } from "./utils/history";
+import ReingildTilford from "./utils/ReingildTilford";
 
 const GRID_STEP = 100;
 const OFFSET = 100;
 export default {
   components: {
     DemoBlock,
+    TreeNode,
   },
   data() {
     return {
@@ -123,6 +131,9 @@ export default {
     },
     hasUnsavedChanges() {
       return this.undoable;
+    },
+    tree() {
+      return ReingildTilford(this.scene, 101);
     },
     grid() {
       return this.scene.reduce((map, item) => {
@@ -172,7 +183,36 @@ export default {
     } catch {
       this.history = initialize([]);
     }
-
+    const initialScene = [
+      {
+        id: 101,
+        color: "red",
+        content: "🐵",
+        parent: null,
+        left: 102,
+        right: 103,
+      },
+      {
+        id: 102,
+        parent: 101,
+        color: "navy",
+        content: "🦑",
+        right: 104,
+      },
+      {
+        id: 103,
+        parent: 101,
+        color: "yellow",
+        content: "🐶",
+      },
+      {
+        id: 104,
+        parent: 102,
+        color: "darkblue",
+        content: "🐱",
+      },
+    ];
+    this.history = initialize(initialScene);
     this.keyHandler = (e) => {
       const editing = e.target.getAttribute("contenteditable") === "true";
       if (editing) {
@@ -218,8 +258,8 @@ export default {
       return { x, y };
     },
     snapToGrid(x, y) {
-      const col = Math.round((x - OFFSET) / GRID_STEP); //Math.round(Math.min(x, this.width - 2 * OFFSET) / GRID_STEP);
-      const row = Math.round((y - OFFSET) / GRID_STEP); // Math.round(Math.min(y, this.height - 2 * OFFSET) / GRID_STEP);
+      const col = Math.round((x - OFFSET) / GRID_STEP);
+      const row = Math.round((y - OFFSET) / GRID_STEP);
       return { col, row };
     },
     placeAt(x, y, item) {
@@ -240,22 +280,27 @@ export default {
         grid[x][y] = { ...item, x, y };
       };
       const currentAt = at(x, y);
-      if (currentAt && currentAt.id !== item.id) {
-        if (!at(x + 1, y) && x < this.maxCol - 1) {
-          put(x + 1, y, currentAt);
-        } else if (!at(x - 1, y) && x > 0) {
-          put(x - 1, y, currentAt);
-        } else if (!at(x, y + 1) && y < this.maxRow - 1) {
-          put(x, y + 1, currentAt);
-        } else if (!at(x, y - 1) && y > 0) {
-          put(x, y - 1, currentAt);
-        } else {
-          return false;
-        }
+      if (this.scene.length === 0) {
+        put(0, 0, item);
+        return true;
+      } else if (currentAt) {
       }
-      if (at(item.x, item.y)) {
-        grid[item.x][item.y] = null;
-      }
+      // if (currentAt && currentAt.id !== item.id) {
+      //   if (!at(x + 1, y) && x < this.maxCol - 1) {
+      //     put(x + 1, y, currentAt);
+      //   } else if (!at(x - 1, y) && x > 0) {
+      //     put(x - 1, y, currentAt);
+      //   } else if (!at(x, y + 1) && y < this.maxRow - 1) {
+      //     put(x, y + 1, currentAt);
+      //   } else if (!at(x, y - 1) && y > 0) {
+      //     put(x, y - 1, currentAt);
+      //   } else {
+      //     return false;
+      //   }
+      // }
+      // if (at(item.x, item.y)) {
+      //   grid[item.x][item.y] = null;
+      // }
       put(x, y, item);
       const scene = Object.values(grid)
         .filter(Boolean)
