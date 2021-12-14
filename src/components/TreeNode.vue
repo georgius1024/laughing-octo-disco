@@ -1,6 +1,33 @@
 <template>
   <div class="node" :style="nodeStyle" v-text="content" />
-  <template v-if="bothChildren">
+  <LineConnector
+    v-if="singleChild"
+    :fromX="centralConnectionPoint.x"
+    :fromY="centralConnectionPoint.y"
+    :toX="singleChildConnection.x"
+    :toY="singleChildConnection.y"
+    stroke="4"
+  />
+  <SideConnector
+    v-if="bothChildren"
+    :fromX="leftConnectionPoint.x"
+    :fromY="leftConnectionPoint.y"
+    :toX="leftConnection.x"
+    :toY="leftConnection.y"
+    stroke="4"
+    radius="24"
+  />
+  <SideConnector
+    v-if="bothChildren"
+    :fromX="rightConnectionPoint.x"
+    :fromY="rightConnectionPoint.y"
+    :toX="rightConnection.x"
+    :toY="rightConnection.y"
+    stroke="4"
+    radius="24"
+  />
+
+  <!-- <template v-if="bothChildren">
     <SideConnector
       :fromX="leftConnectionPoint.x"
       :fromY="leftConnectionPoint.y"
@@ -26,7 +53,7 @@
       :toY="singleChildConnection.y"
       stroke="4"
     />
-  </template>
+  </template> -->
 </template>
 <script>
 import LineConnector from "./LineConnector.vue";
@@ -43,28 +70,47 @@ export default {
     "size",
     "color",
     "content",
-    "dx",
-    "dy",
-    "left",
-    "right",
+    "leftConnection",
+    "rightConnection",
   ],
   computed: {
-    isLeaf() {
-      return !this.left && !this.right;
-    },
-    hasLayout() {
-      return "x" in this.node;
+    children() {
+      return [this.leftConnection, this.rightConnection].filter(Boolean);
     },
     bothChildren() {
-      return this.left && this.right;
+      return this.children.length === 2;
     },
     singleChild() {
-      return this.left || this.right;
+      return this.children.length === 1;
     },
+    coords() {
+      return {
+        x: this.left,
+        y: this.top,
+      };
+    },
+    // leftChildCoords() {
+    //   if (!this.leftConnecton) {
+    //     return {};
+    //   }
+    //   return {
+    //     x: this.leftConnecton.x,
+    //     y: this.leftConnecton.y,
+    //   };
+    // },
+    // rightChildCoords() {
+    //   if (!this.rightConnecton) {
+    //     return {};
+    //   }
+    //   return {
+    //     x: this.rightConnecton.x,
+    //     y: this.rightConnecton.y,
+    //   };
+    // },
     nodeStyle() {
       return {
-        left: `${this.x * this.dx - this.size / 2}px`,
-        top: `${this.y * this.dy - this.size / 2}px`,
+        left: `${this.x}px`,
+        top: `${this.y}px`,
         width: `${this.size}px`,
         height: `${this.size}px`,
         backgroundColor: this.color,
@@ -73,49 +119,29 @@ export default {
     },
     centralConnectionPoint() {
       return {
-        x: this.node.x * this.dx + this.width,
-        y: this.node.y * this.dy + this.height,
+        x: this.x + this.size / 2,
+        y: this.y + this.size,
       };
     },
     leftConnectionPoint() {
       return {
-        x: this.node.x * this.dx + this.width / 2,
-        y: this.node.y * this.dy + this.height / 2,
+        x: this.x,
+        y: this.y + this.size / 2,
       };
     },
     rightConnectionPoint() {
       return {
-        x: this.node.x * this.dx + (this.width * 3) / 2,
-        y: this.node.y * this.dy + this.height / 2,
-      };
-    },
-    leftChildConnection() {
-      if (!this.left) {
-        return false;
-      }
-      return {
-        x: this.left.x * this.dx + this.width,
-        y: this.left.y * this.dy,
-      };
-    },
-    rightChildConnection() {
-      if (!this.right) {
-        return false;
-      }
-      return {
-        x: this.right.x * this.dx + this.width,
-        y: this.right.y * this.dy,
+        x: this.x + this.size,
+        y: this.y + this.size / 2,
       };
     },
     singleChildConnection() {
-      const child = this.singleChild;
-      if (!child) {
-        return false;
+      if (this.leftConnection) {
+        return this.leftConnection;
       }
-      return {
-        x: child.x * this.dx + this.width,
-        y: child.y * this.dy,
-      };
+      if (this.rightConnection) {
+        return this.rightConnection;
+      }
     },
   },
 };

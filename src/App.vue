@@ -6,7 +6,7 @@
         :id="item.id"
         :x="100 - 3"
         :y="50 + index * 120"
-        :size="80"
+        :size="nodeSize"
         :color="item.color"
         :content="item.content"
         :key="item.id"
@@ -74,17 +74,14 @@
         <TreeNode
           v-for="item in tree"
           :id="item.id"
-          :x="item.x"
-          :y="item.y"
-          :dx="100"
-          :dy="100"
-          :size="80"
+          :x="gridToCanvasX(item.x)"
+          :y="gridToCanvasY(item.y)"
+          :size="nodeSize"
           :color="item.color"
           :content="item.content"
           :key="item.id"
-          :t="tree"
-          :left="tree"
-          :right1="item.right"
+          :leftConnection="connectionPoint(item.left)"
+          :rightConnection="connectionPoint(item.right)"
         />
       </template>
     </main>
@@ -135,13 +132,20 @@ export default {
     tree() {
       return ReingildTilford(this.scene, 101);
     },
-    grid() {
-      return this.scene.reduce((map, item) => {
-        if (!map[item.x]) {
-          map[item.x] = [];
-        }
-        map[item.x][item.y] = item;
-      }, {});
+    nodeSize() {
+      return 80;
+    },
+    sceneOffsetX() {
+      return OFFSET;
+    },
+    sceneOffsetY() {
+      return OFFSET;
+    },
+    sceneStepX() {
+      return GRID_STEP;
+    },
+    sceneStepY() {
+      return GRID_STEP;
     },
     pickerItems() {
       return [
@@ -252,10 +256,20 @@ export default {
       this.history = redo(this.history);
       this.save();
     },
-    gridToCanvas(col, row) {
-      const x = col * GRID_STEP + OFFSET;
-      const y = row * GRID_STEP + OFFSET;
-      return { x, y };
+    gridToCanvasX(col) {
+      return col * this.sceneOffsetX + this.sceneOffsetX - this.nodeSize / 2;
+    },
+    gridToCanvasY(row) {
+      return row * this.sceneOffsetY + this.sceneOffsetY - this.nodeSize / 2;
+    },
+    connectionPoint(id) {
+      const node = this.tree[id];
+      if (node) {
+        return {
+          x: node.x * this.sceneOffsetX + this.sceneOffsetX,
+          y: node.y * this.sceneOffsetY + this.sceneOffsetY - this.nodeSize / 2,
+        };
+      }
     },
     snapToGrid(x, y) {
       const col = Math.round((x - OFFSET) / GRID_STEP);
@@ -350,6 +364,9 @@ export default {
       }
       const scene = this.scene.filter((e) => e.id !== id);
       this.updateScene(scene);
+    },
+    getChildren(index) {
+      return this.tree[index];
     },
   },
 };

@@ -80,7 +80,7 @@ export default {
       return this.fromY < this.toY ? this.height - this.padding : this.padding;
     },
     black() {
-      return '#333'
+      return "#777";
     },
     style() {
       return {

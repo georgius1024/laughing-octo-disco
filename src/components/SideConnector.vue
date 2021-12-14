@@ -11,7 +11,7 @@
       :y1="startingPoint.y"
       :x2="firstJunction.x"
       :y2="firstJunction.y"
-      stroke="black"
+      :stroke="black"
       :stroke-width="stroke"
     />
     <path
@@ -21,7 +21,7 @@
         ${secondJunction.x} ${secondJunction.y}  
         ${secondJunction.x} ${secondJunction.y}
       `"
-      stroke="black"
+      :stroke="black"
       :stroke-width="stroke"
       fill="transparent"
       stroke-linecap="round"
@@ -31,7 +31,7 @@
       :y1="secondJunction.y"
       :x2="endingPoint.x"
       :y2="endingPoint.y"
-      stroke="black"
+      :stroke="black"
       :stroke-width="stroke"
       stroke-linecap="round"
       marker-end="url(#triangle)"
@@ -45,6 +45,7 @@
       markerUnits="strokeWidth"
       markerHeight="4"
       orient="auto"
+      :fill="black"
     >
       <path d="M 0 0 L 10 5 L 0 10 z" />
     </marker>
@@ -52,7 +53,7 @@
       :cx="x1"
       :cy="y1"
       :r="stroke"
-      stroke="black"
+      :stroke="black"
       fill="white"
       stroke-width="2"
     />
@@ -60,7 +61,7 @@
       :cx="x2"
       :cy="y2"
       :r="stroke"
-      stroke="black"
+      :stroke="black"
       fill="white"
       stroke-width="2"
     />
@@ -126,6 +127,9 @@ export default {
         x: this.endingPoint.x,
         y: this.startingPoint.y + +this.radius,
       };
+    },
+    black() {
+      return "#777";
     },
     style() {
       return {
