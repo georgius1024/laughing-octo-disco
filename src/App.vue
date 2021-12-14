@@ -1,29 +1,13 @@
 <template>
   <div class="layout">
-    <aside class="picker">
-      <TreeNode
-        v-for="(item, index) in pickerItems"
-        :id="item.id"
-        :x="63"
-        :y="20 + index * 100"
-        :size="nodeSize"
-        :color="item.color"
-        :content="item.content"
-        :key="item.id"
-        :rejected="item.id === rejected"
-        @drag="dragging = $event"
-      />
-      <div class="separator"></div>
-      <div
-        class="trash-can"
-        @drop="onDelete"
-        @dragover.prevent
-        @dragenter.prevent
-        v-text="'🗑️'"
-      />
-    </aside>
     <header class="header">
-      <h1>Vue binary tree draw</h1>
+      <h1>Draw binary tree</h1>
+      <a
+        href="https://github.com/georgius1024/laughing-octo-disco"
+        target="_blank"
+      >
+        https://github.com/georgius1024/laughing-octo-disco
+      </a>
       <button @click="clear">
         <svg style="width: 24px; height: 24px" viewBox="0 0 24 24">
           <path
@@ -50,6 +34,28 @@
         </svg>
       </button>
     </header>
+    <aside class="picker">
+      <TreeNode
+        v-for="(item, index) in pickerItems"
+        :id="item.id"
+        :x="60"
+        :y="20 + index * 100"
+        :size="nodeSize"
+        :color="item.color"
+        :content="item.content"
+        :key="item.id"
+        :rejected="item.id === rejected"
+        @drag="dragging = $event"
+      />
+      <div class="separator"></div>
+      <div
+        class="trash-can"
+        @drop="onDelete"
+        @dragover.prevent
+        @dragenter.prevent
+        v-text="'🗑️'"
+      />
+    </aside>
     <main
       class="canvas"
       ref="canvas"
@@ -57,30 +63,6 @@
       @dragover.prevent
       @dragenter.prevent
     >
-      <span
-        v-for="step in 20"
-        :key="step"
-        :style="{
-          position: 'absolute',
-          left: `${(step - 1) * sceneStepX + sceneOffsetX}px`,
-          borderLeft: '1px solid black',
-        }"
-      >
-        {{ step }}
-      </span>
-      <span
-        v-for="step in 10"
-        :key="step"
-        :style="{
-          position: 'absolute',
-          top: `${(step - 1) * sceneStepY + sceneOffsetY}px`,
-          transform: 'rotate(-90deg)',
-          borderRight: '1px solid black',
-          paddingTop: '6px',
-        }"
-      >
-        {{ step }}
-      </span>
       <template v-if="history">
         <TreeNode
           v-for="item in tree"
@@ -490,10 +472,12 @@ export default {
   align-items: center;
   background-color: #ccc7;
   h1 {
-    flex-grow: 1;
     font-size: 21px;
     font-weight: 400;
-    text-align: center;
+    margin: 0 32px;
+  }
+  a {
+    flex-grow: 1;
   }
   button {
     border-radius: 100%;
@@ -514,8 +498,9 @@ export default {
   }
 }
 .picker {
+  border-top: 6px solid #333;
   grid-area: sidebar;
-  background-color: aqua;
+  background-color: #eee;
   cursor: default;
   position: relative;
   display: flex;
@@ -535,7 +520,7 @@ export default {
   border-top: 6px solid #333;
   grid-area: main;
   position: relative;
-  background-color: #ccc;
+  background-color: #eee;
   display: flex;
   overflow-y: auto;
 }
