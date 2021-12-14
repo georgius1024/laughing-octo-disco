@@ -21,7 +21,7 @@
       />
     </aside>
     <header class="header">
-      <h1>Vue ...ing demo</h1>
+      <h1>Vue tree plotting demo</h1>
       <button @click="clear">
         <svg style="width: 24px; height: 24px" viewBox="0 0 24 24">
           <path
@@ -344,6 +344,7 @@ export default {
       const id = +event.dataTransfer.getData("id");
       const parent = this.scene.find((e) => e.left === id || e.right === id);
       if (!parent) {
+        // Error - root deletion
         return;
       }
       if (parent.left === id) {
