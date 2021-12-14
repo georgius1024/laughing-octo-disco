@@ -1,11 +1,11 @@
 <template>
   <div class="layout">
     <aside class="picker">
-      <DemoBlock
+      <TreeNode
         v-for="(item, index) in pickerItems"
         :id="item.id"
-        :x="100 - 3"
-        :y="50 + index * 100"
+        :x="63"
+        :y="20 + index * 100"
         :size="nodeSize"
         :color="item.color"
         :content="item.content"
@@ -21,7 +21,7 @@
       />
     </aside>
     <header class="header">
-      <h1>Vue tree plotting demo</h1>
+      <h1>Vue binary tree draw</h1>
       <button @click="clear">
         <svg style="width: 24px; height: 24px" viewBox="0 0 24 24">
           <path
@@ -99,7 +99,6 @@
 </template>
 <script>
 import { nanoid } from "nanoid";
-import DemoBlock from "./components/DemoBlock.vue";
 import TreeNode from "./components/TreeNode.vue";
 import {
   initialize,
@@ -119,7 +118,6 @@ const GRID_OFFSET_Y = 100;
 
 export default {
   components: {
-    DemoBlock,
     TreeNode,
   },
   data() {
@@ -185,7 +183,7 @@ export default {
         {
           id: nanoid(),
           color: "navy",
-          content: "🦑",
+          content: "🐷",
         },
         {
           id: nanoid(),
@@ -223,7 +221,7 @@ export default {
           id: 102,
           parent: 101,
           color: "navy",
-          content: "🦑",
+          content: "🐷",
           right: 104,
         },
         {
@@ -513,7 +511,6 @@ export default {
 .picker {
   grid-area: sidebar;
   background-color: aqua;
-  border-right: 6px solid #333;
   cursor: default;
   position: relative;
   display: flex;
@@ -529,6 +526,8 @@ export default {
 }
 
 .canvas {
+  border-left: 6px solid #333;
+  border-top: 6px solid #333;
   grid-area: main;
   position: relative;
   background-color: #ccc;
