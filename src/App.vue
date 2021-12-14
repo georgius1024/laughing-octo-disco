@@ -377,10 +377,10 @@ export default {
       this.updateScene(scene);
     },
     hasAsParent(node, parent) {
-      const currentParent = this.map[node.parent];
-      if (currentParent === parent) {
+      if (node.parent === parent.id) {
         return true;
       }
+      const currentParent = this.map[node.parent];
       return currentParent && this.hasAsParent(currentParent, parent);
     },
     moveNode(parent, node) {
@@ -388,8 +388,12 @@ export default {
         // Error - parent full
         return;
       }
-      if (parent === node) {
+      if (parent.id === node.id) {
         // Error - can not be child for himself
+        return;
+      }
+      if (parent.id === node.parent) {
+        // Error - closest parent can not be target
         return;
       }
       if (this.hasAsParent(parent, node)) {

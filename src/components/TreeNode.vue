@@ -119,6 +119,12 @@ export default {
     dragEnd() {
       this.dragging = false;
     },
+    dragenter(event) {
+      console.log(event);
+    },
+    dragleave(event) {
+      console.log(event);
+    },
   },
 };
 </script>
