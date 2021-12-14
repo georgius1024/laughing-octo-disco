@@ -109,7 +109,7 @@ import {
   undo,
   redo,
 } from "./utils/history";
-import ReingildTilford from "./utils/ReingildTilford";
+import ReingoldTilford from "./utils/ReingoldTilford";
 
 const GRID_STEP_X = 100;
 const GRID_STEP_Y = 100;
@@ -142,7 +142,13 @@ export default {
       return this.undoable;
     },
     tree() {
-      return ReingildTilford(this.scene, 101);
+      return ReingoldTilford(this.scene, 101);
+    },
+    map() {
+      return this.scene.reduce((map, item) => {
+        map[item.id] = item;
+        return map;
+      }, {});
     },
     nodeSize() {
       return 80;
@@ -350,6 +356,7 @@ export default {
     placeNewNode(parent, pickerItem) {
       const parentId = parent.id;
       if (parent.left && parent.right) {
+        // Error - parent is full
         return false;
       }
       const node = {
@@ -368,9 +375,24 @@ export default {
       ];
       this.updateScene(scene);
     },
+    hasAsParent(node, parent) {
+      const currentParent = this.map[node.parent];
+      if (currentParent === parent) {
+        return true;
+      }
+      return currentParent && this.hasAsParent(currentParent, parent);
+    },
     moveNode(parent, node) {
       if (parent.left && parent.right) {
-        // Error
+        // Error - parent full
+        return;
+      }
+      if (parent === node) {
+        // Error - can not be child for himself
+        return;
+      }
+      if (this.hasAsParent(parent, node)) {
+        // Error - can not be parent for himself
         return;
       }
       const scene = this.scene.map((e) => {
@@ -394,22 +416,18 @@ export default {
       this.updateScene(scene);
     },
     deleteSubtree(parent, left) {
-      const map = this.scene.reduce((map, item) => {
-        map[item.id] = item;
-        return map;
-      }, {});
       const nodesToDelete = [];
       const startFrom = left ? parent.left : parent.right;
       const walk = (node) => {
         if (node.left) {
-          walk(map[node.left]);
+          walk(this.map[node.left]);
         }
         if (node.right) {
-          walk(map[node.right]);
+          walk(this.map[node.right]);
         }
         nodesToDelete.push(node.id);
       };
-      walk(map[startFrom]);
+      walk(this.map[startFrom]);
       const newParent = { ...parent };
       if (left) {
         delete newParent.left;
@@ -420,9 +438,6 @@ export default {
         .filter((e) => !nodesToDelete.includes(e.id))
         .map((e) => (e.id === parent.id ? newParent : e));
       this.updateScene(scene);
-    },
-    getChildren(index) {
-      return this.tree[index];
     },
   },
 };
