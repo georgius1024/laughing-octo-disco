@@ -1,3 +1,3 @@
-# Simple demo for Vue and drag and drop
+# Simple demo for Vue and binary tree
 
-https://georgius1024.github.io/vue-dnd-demo/
+https://georgius1024.github.io/laughing-octo-disco/

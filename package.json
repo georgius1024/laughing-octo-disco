@@ -1,5 +1,6 @@
 {
   "name": "vue-tree-demo",
+  "homepage": "https://georgius1024.github.io/laughing-octo-disco/",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
