@@ -310,58 +310,10 @@ export default {
       const row = +Math.round((y - GRID_OFFSET_Y) / GRID_STEP_Y);
       return { col, row };
     },
-    placeAt(x, y, item) {
-      const grid = this.scene.reduce((grid, item) => {
-        if (!grid[item.x]) {
-          grid[item.x] = {};
-        }
-        grid[item.x][item.y] = item;
-        return grid;
-      }, {});
-      const at = (x, y) => {
-        return grid[x] && grid[x][y];
-      };
-      const put = (x, y, item) => {
-        if (!grid[x]) {
-          grid[x] = {};
-        }
-        grid[x][y] = { ...item, x, y };
-      };
-      const currentAt = at(x, y);
-      if (this.scene.length === 0) {
-        put(0, 0, item);
-        return true;
-      } else if (currentAt) {
-      }
-      // if (currentAt && currentAt.id !== item.id) {
-      //   if (!at(x + 1, y) && x < this.maxCol - 1) {
-      //     put(x + 1, y, currentAt);
-      //   } else if (!at(x - 1, y) && x > 0) {
-      //     put(x - 1, y, currentAt);
-      //   } else if (!at(x, y + 1) && y < this.maxRow - 1) {
-      //     put(x, y + 1, currentAt);
-      //   } else if (!at(x, y - 1) && y > 0) {
-      //     put(x, y - 1, currentAt);
-      //   } else {
-      //     return false;
-      //   }
-      // }
-      // if (at(item.x, item.y)) {
-      //   grid[item.x][item.y] = null;
-      // }
-      put(x, y, item);
-      const scene = Object.values(grid)
-        .filter(Boolean)
-        .reduce((list, items) => {
-          return [...list, ...Object.values(items)].filter(Boolean);
-        }, []);
-      this.updateScene(scene);
-      return true;
-    },
     onDrop(event) {
       const { offsetLeft, offsetTop, scrollLeft, scrollTop } =
         this.$refs.canvas;
-      const id = event.dataTransfer.getData("id");
+      const id = +event.dataTransfer.getData("id");
       const coords = {
         x: event.pageX - offsetLeft + scrollLeft,
         y: event.pageY - offsetTop + scrollTop,
@@ -370,35 +322,30 @@ export default {
       const parent = Object.values(this.tree).find((item) => {
         return item.x === col && item.y === row;
       });
-      const pickerItem = this.pickerItems.find((e) => e.id === id);
-      if (parent && pickerItem) {
-        this.placeNewNode(parent, pickerItem);
+      if (!parent) {
+        return;
       }
-      //console.log(row, col, parentId, );
-
-      // if (
-      //   col < 0 ||
-      //   col > this.maxCol - 1 ||
-      //   row < 0 ||
-      //   row > this.maxRow - 1
-      // ) {
-      //   return;
-      // }
-
-      // if (+id) {
-      //   const pickerItem = this.pickerItems.find((e) => e.id === +id);
-      //   if (pickerItem) {
-      //     this.placeAt(col, row, {
-      //       ...pickerItem,
-      //       id: nanoid(),
-      //       x: col,
-      //       y: row,
-      //     });
-      //   }
-      // } else {
-      //   const sceneItem = this.scene.find((e) => e.id === id);
-      //   this.placeAt(col, row, sceneItem);
-      // }
+      const pickerItem = this.pickerItems.find((e) => e.id === id);
+      if (pickerItem) {
+        return this.placeNewNode(parent, pickerItem);
+      }
+      const sceneItem = this.scene.find((e) => e.id === id);
+      if (sceneItem) {
+        return this.moveNode(parent, sceneItem);
+      }
+    },
+    onDelete(event) {
+      const id = +event.dataTransfer.getData("id");
+      const parent = this.scene.find((e) => e.left === id || e.right === id);
+      if (!parent) {
+        return;
+      }
+      if (parent.left === id) {
+        this.deleteSubtree(parent, true);
+      }
+      if (parent.right === id) {
+        this.deleteSubtree(parent, false);
+      }
     },
     placeNewNode(parent, pickerItem) {
       const parentId = parent.id;
@@ -421,18 +368,30 @@ export default {
       ];
       this.updateScene(scene);
     },
-    onDelete(event) {
-      const id = +event.dataTransfer.getData("id");
-      const parent = this.scene.find((e) => e.left === id || e.right === id);
-      if (!parent) {
+    moveNode(parent, node) {
+      if (parent.left && parent.right) {
+        // Error
         return;
       }
-      if (parent.left === id) {
-        this.deleteSubtree(parent, true);
-      }
-      if (parent.right === id) {
-        this.deleteSubtree(parent, false);
-      }
+      const scene = this.scene.map((e) => {
+        if (e.id === node.id) {
+          return { ...e, parent: parent.id };
+        } else if (e.id === parent.id) {
+          if (e.left) {
+            return { ...e, right: node.id };
+          } else {
+            return { ...e, left: node.id };
+          }
+        } else if (e.id === node.parent) {
+          if (e.left === node.id) {
+            return { ...e, left: undefined };
+          } else {
+            return { ...e, right: undefined };
+          }
+        }
+        return e;
+      });
+      this.updateScene(scene);
     },
     deleteSubtree(parent, left) {
       const map = this.scene.reduce((map, item) => {

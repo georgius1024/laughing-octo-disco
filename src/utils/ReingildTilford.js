@@ -145,7 +145,6 @@ export default function ReingoldTilford(nodes, rootId) {
     traverse(node, (node) => (node.x = node.final));
   };
   const centerFinalX = (node) => {
-    console.log(node);
     if (node.left) {
       centerFinalX(getNode(node.left));
     }
@@ -155,7 +154,7 @@ export default function ReingoldTilford(nodes, rootId) {
     if (node.left && node.right) {
       const leftX = map[node.left].final;
       const rightX = map[node.right].final;
-      node.final = (leftX + rightX) / 2;
+      node.final = Math.round(leftX + rightX) / 2;
     } else if (node.left) {
       const leftX = map[node.left].final;
       if (leftX !== node.final) {
