@@ -91,6 +91,7 @@
           :key="item.id"
           :leftConnection="connectionPoint(item.left)"
           :rightConnection="connectionPoint(item.right)"
+          :rejected="item.id === rejected"
         />
       </template>
     </main>
@@ -124,6 +125,7 @@ export default {
   data() {
     return {
       history: null,
+      rejected: null,
       maxCol: 0,
       maxRow: 0,
     };
@@ -345,6 +347,8 @@ export default {
       const parent = this.scene.find((e) => e.left === id || e.right === id);
       if (!parent) {
         // Error - root deletion
+        const node = this.scene.find((e) => e.id);
+        this.reject(node.id);
         return;
       }
       if (parent.left === id) {
@@ -358,6 +362,7 @@ export default {
       const parentId = parent.id;
       if (parent.left && parent.right) {
         // Error - parent is full
+        this.reject(parent.id);
         return false;
       }
       const node = {
@@ -386,18 +391,22 @@ export default {
     moveNode(parent, node) {
       if (parent.left && parent.right) {
         // Error - parent full
+        this.reject(parent.id);
         return;
       }
       if (parent.id === node.id) {
         // Error - can not be child for himself
+        this.reject(parent.id);
         return;
       }
       if (parent.id === node.parent) {
         // Error - closest parent can not be target
+        this.reject(parent.id);
         return;
       }
       if (this.hasAsParent(parent, node)) {
         // Error - can not be parent for himself
+        this.reject(parent.id);
         return;
       }
       const scene = this.scene.map((e) => {
@@ -419,6 +428,12 @@ export default {
         return e;
       });
       this.updateScene(scene);
+    },
+    reject(id) {
+      this.rejected = id;
+      setTimeout(() => {
+        this.rejected = null;
+      }, 2000);
     },
     deleteSubtree(parent, left) {
       const nodesToDelete = [];

@@ -1,11 +1,15 @@
 <template>
   <div
     class="node"
+    :class="{ 'drag-over': dragOver, rejected }"
     :style="nodeStyle"
     v-text="content"
     draggable="true"
     @dragstart="startDrag"
     @dragend="dragEnd"
+    @dragenter="dragenter"
+    @dragleave="dragleave"
+    @drop="drop"
   />
   <LineConnector
     v-if="singleChild"
@@ -51,7 +55,13 @@ export default {
     "content",
     "leftConnection",
     "rightConnection",
+    "rejected",
   ],
+  data() {
+    return {
+      dragOver: false,
+    };
+  },
   computed: {
     children() {
       return [this.leftConnection, this.rightConnection].filter(Boolean);
@@ -118,12 +128,16 @@ export default {
     },
     dragEnd() {
       this.dragging = false;
+      this.dragOver = false;
     },
     dragenter(event) {
-      console.log(event);
+      this.dragOver = true;
     },
     dragleave(event) {
-      console.log(event);
+      this.dragOver = false;
+    },
+    drop() {
+      this.dragOver = false;
     },
   },
 };
@@ -141,5 +155,37 @@ export default {
   transform: translate(0, 0); // <== black magic from
   // // https://github.com/react-dnd/react-dnd/issues/788#issuecomment-367300464
   transition: all 200ms ease;
+  transform-origin: center;
+  &.dragging {
+    transform: rotate(30deg);
+  }
+  &.drag-over {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+}
+
+@keyframes reject {
+  0% {
+    transform: translateX(0);
+  }
+  6.5% {
+    transform: translateX(-6px) rotateY(-9deg);
+  }
+  18.5% {
+    transform: translateX(5px) rotateY(7deg);
+  }
+  31.5% {
+    transform: translateX(-3px) rotateY(-5deg);
+  }
+  43.5% {
+    transform: translateX(2px) rotateY(3deg);
+  }
+  50% {
+    transform: translateX(0);
+  }
+}
+.rejected {
+  animation: 1s ease-in-out reject;
 }
 </style>
