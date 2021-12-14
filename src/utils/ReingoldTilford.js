@@ -1,4 +1,8 @@
-export default function ReingoldTilford(nodes, rootId) {
+export default function ReingoldTilford(
+  nodes,
+  rootId,
+  stickToIntegers = false
+) {
   const step = 2;
 
   const map = nodes.reduce((map, item) => {
@@ -154,7 +158,10 @@ export default function ReingoldTilford(nodes, rootId) {
     if (node.left && node.right) {
       const leftX = +map[node.left].final;
       const rightX = +map[node.right].final;
-      node.final = Math.round((leftX + rightX) / 2);
+      node.final = (leftX + rightX) / 2;
+      if (stickToIntegers) {
+        node.final = Math.round(node.final);
+      }
     } else if (node.left) {
       const leftX = map[node.left].final;
       if (leftX !== node.final) {

@@ -112,7 +112,7 @@ import {
 import ReingoldTilford from "./utils/ReingoldTilford";
 
 const GRID_STEP_X = 100;
-const GRID_STEP_Y = 100;
+const GRID_STEP_Y = 120;
 const GRID_OFFSET_X = 100;
 const GRID_OFFSET_Y = 100;
 
