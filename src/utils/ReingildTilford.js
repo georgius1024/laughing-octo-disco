@@ -17,6 +17,16 @@ export default function ReingoldTilford(nodes, rootId) {
       traverse(getNode(node.right), callback);
     }
   };
+  const traverseLeftToRight = (node, callback) => {
+    if (node.left) {
+      traverse(getNode(node.left), callback);
+    }
+    if (node.right) {
+      traverse(getNode(node.right), callback);
+    }
+    callback(node);
+  };
+
   const prepareData = (node, level, prevSibling) => {
     node.y = level;
     node.x = 0;
@@ -73,6 +83,26 @@ export default function ReingoldTilford(nodes, rootId) {
     });
     return conflicts;
   };
+  const hasIntersections = (node) => {
+    const parents = {};
+    let intersections = 0;
+    traverseLeftToRight(node, (node) => {
+      if (!parents[node.y]) {
+        parents[node.y] = {};
+      }
+      const above = parents[node.y - 1] && parents[node.y - 1][node.final];
+      if (above && above.left !== node.id && above.right !== node.id) {
+        intersections++;
+      }
+      const below = parents[node.y + 1] && parents[node.y + 1][node.final];
+      if (below && below.left !== node.id && below.right !== node.id) {
+        intersections++;
+      }
+      parents[node.y][node.final] = node;
+    });
+    return intersections;
+  };
+
   const fixNodeConflicts = (node) => {
     if (node.left) {
       fixNodeConflicts(getNode(node.left));
@@ -115,20 +145,35 @@ export default function ReingoldTilford(nodes, rootId) {
     traverse(node, (node) => (node.x = node.final));
   };
   const centerFinalX = (node) => {
-    traverse(node, (node) => {
-      if (node.left && node.right) {
-        const leftX = map[node.left].final;
-        const rightX = map[node.right].final;
-        node.final = (leftX + rightX) / 2;
+    console.log(node);
+    if (node.left) {
+      centerFinalX(getNode(node.left));
+    }
+    if (node.right) {
+      centerFinalX(getNode(node.right));
+    }
+    if (node.left && node.right) {
+      const leftX = map[node.left].final;
+      const rightX = map[node.right].final;
+      node.final = (leftX + rightX) / 2;
+    } else if (node.left) {
+      const leftX = map[node.left].final;
+      if (leftX !== node.final) {
+        node.final = leftX;
       }
-    });
+    } else if (node.right) {
+      const rightX = map[node.right].final;
+      if (rightX !== node.final) {
+        node.final = rightX;
+      }
+    }
   };
 
   prepareData(root, 0, null);
   firstPass(root);
   secondPass(root, 0);
   fixFinalX(root);
-  if (hasConflicts(root)) {
+  if (hasConflicts(root) || hasIntersections(root)) {
     fixNodeConflicts(root);
     centerFinalX(root);
   }

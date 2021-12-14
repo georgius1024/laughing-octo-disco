@@ -5,7 +5,7 @@
         v-for="(item, index) in pickerItems"
         :id="item.id"
         :x="100 - 3"
-        :y="50 + index * 120"
+        :y="50 + index * 100"
         :size="nodeSize"
         :color="item.color"
         :content="item.content"
@@ -22,6 +22,15 @@
     </aside>
     <header class="header">
       <h1>Vue ...ing demo</h1>
+      <button @click="clear">
+        <svg style="width: 24px; height: 24px" viewBox="0 0 24 24">
+          <path
+            fill="currentColor"
+            d="M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z"
+          />
+        </svg>
+      </button>
+
       <button @click="undo" :disabled="!undoable">
         <svg style="width: 24px; height: 24px" viewBox="0 0 24 24">
           <path
@@ -51,7 +60,7 @@
         :key="step"
         :style="{
           position: 'absolute',
-          left: `${(step - 1) * 100 + 100}px`,
+          left: `${(step - 1) * sceneStepX + sceneOffsetX}px`,
           borderLeft: '1px solid black',
         }"
       >
@@ -62,7 +71,7 @@
         :key="step"
         :style="{
           position: 'absolute',
-          top: `${(step - 1) * 100 + 100}px`,
+          top: `${(step - 1) * sceneStepY + sceneOffsetY}px`,
           transform: 'rotate(-90deg)',
           borderRight: '1px solid black',
           paddingTop: '6px',
@@ -102,8 +111,11 @@ import {
 } from "./utils/history";
 import ReingildTilford from "./utils/ReingildTilford";
 
-const GRID_STEP = 100;
-const OFFSET = 100;
+const GRID_STEP_X = 100;
+const GRID_STEP_Y = 100;
+const GRID_OFFSET_X = 100;
+const GRID_OFFSET_Y = 100;
+
 export default {
   components: {
     DemoBlock,
@@ -136,36 +148,85 @@ export default {
       return 80;
     },
     sceneOffsetX() {
-      return OFFSET;
+      return GRID_OFFSET_X;
     },
     sceneOffsetY() {
-      return OFFSET;
+      return GRID_OFFSET_Y;
     },
     sceneStepX() {
-      return GRID_STEP;
+      return GRID_STEP_X;
     },
     sceneStepY() {
-      return GRID_STEP;
+      return GRID_STEP_Y;
+    },
+    nextId() {
+      return this.scene.reduce((max, item) => {
+        if (max > item.id) {
+          return max;
+        }
+        return item.id + 1;
+      }, 101);
     },
     pickerItems() {
+      return [
+        {
+          id: nanoid(),
+          color: "red",
+          content: "🐵",
+        },
+        {
+          id: nanoid(),
+          color: "navy",
+          content: "🦑",
+        },
+        {
+          id: nanoid(),
+          color: "yellow",
+          content: "🐶",
+        },
+        {
+          id: nanoid(),
+          color: "darkmagenta",
+          content: "🐱",
+        },
+        {
+          id: nanoid(),
+          color: "green",
+          content: "🐥",
+        },
+        {
+          id: nanoid(),
+          color: "purple",
+          content: "🐮",
+        },
+      ];
+    },
+    initialScene() {
       return [
         {
           id: 101,
           color: "red",
           content: "🐵",
+          parent: null,
+          left: 102,
+          right: 103,
         },
         {
           id: 102,
+          parent: 101,
           color: "navy",
           content: "🦑",
+          right: 104,
         },
         {
           id: 103,
+          parent: 101,
           color: "yellow",
           content: "🐶",
         },
         {
           id: 104,
+          parent: 102,
           color: "darkblue",
           content: "🐱",
         },
@@ -174,8 +235,8 @@ export default {
   },
   mounted() {
     const { scrollWidth, scrollHeight } = this.$refs.canvas;
-    this.maxCol = Math.ceil((scrollWidth - 2 * OFFSET) / GRID_STEP);
-    this.maxRow = Math.ceil((scrollHeight - 2 * OFFSET) / GRID_STEP);
+    this.maxCol = Math.ceil((scrollWidth - 2 * GRID_OFFSET_X) / GRID_STEP_X);
+    this.maxRow = Math.ceil((scrollHeight - 2 * GRID_OFFSET_Y) / GRID_STEP_Y);
 
     this.history = initialize([]);
 
@@ -185,38 +246,8 @@ export default {
         this.history = initialize(scene);
       }
     } catch {
-      this.history = initialize([]);
+      this.history = initialize(this.initialScene);
     }
-    const initialScene = [
-      {
-        id: 101,
-        color: "red",
-        content: "🐵",
-        parent: null,
-        left: 102,
-        right: 103,
-      },
-      {
-        id: 102,
-        parent: 101,
-        color: "navy",
-        content: "🦑",
-        right: 104,
-      },
-      {
-        id: 103,
-        parent: 101,
-        color: "yellow",
-        content: "🐶",
-      },
-      {
-        id: 104,
-        parent: 102,
-        color: "darkblue",
-        content: "🐱",
-      },
-    ];
-    this.history = initialize(initialScene);
     this.keyHandler = (e) => {
       const editing = e.target.getAttribute("contenteditable") === "true";
       if (editing) {
@@ -256,24 +287,27 @@ export default {
       this.history = redo(this.history);
       this.save();
     },
+    clear() {
+      this.history = initialize(this.initialScene);
+    },
     gridToCanvasX(col) {
-      return col * this.sceneOffsetX + this.sceneOffsetX - this.nodeSize / 2;
+      return col * this.sceneStepX + this.sceneOffsetX - this.nodeSize / 2;
     },
     gridToCanvasY(row) {
-      return row * this.sceneOffsetY + this.sceneOffsetY - this.nodeSize / 2;
+      return row * this.sceneStepY + this.sceneOffsetY - this.nodeSize / 2;
     },
     connectionPoint(id) {
       const node = this.tree[id];
       if (node) {
         return {
-          x: node.x * this.sceneOffsetX + this.sceneOffsetX,
-          y: node.y * this.sceneOffsetY + this.sceneOffsetY - this.nodeSize / 2,
+          x: node.x * this.sceneStepX + this.sceneOffsetX,
+          y: node.y * this.sceneStepY + this.sceneOffsetY - this.nodeSize / 2,
         };
       }
     },
     snapToGrid(x, y) {
-      const col = Math.round((x - OFFSET) / GRID_STEP);
-      const row = Math.round((y - OFFSET) / GRID_STEP);
+      const col = +Math.round((x - GRID_OFFSET_X) / GRID_STEP_X);
+      const row = +Math.round((y - GRID_OFFSET_Y) / GRID_STEP_Y);
       return { col, row };
     },
     placeAt(x, y, item) {
@@ -333,36 +367,99 @@ export default {
         y: event.pageY - offsetTop + scrollTop,
       };
       const { row, col } = this.snapToGrid(coords.x, coords.y);
-      if (
-        col < 0 ||
-        col > this.maxCol - 1 ||
-        row < 0 ||
-        row > this.maxRow - 1
-      ) {
-        return;
+      const parent = Object.values(this.tree).find((item) => {
+        return item.x === col && item.y === row;
+      });
+      const pickerItem = this.pickerItems.find((e) => e.id === id);
+      if (parent && pickerItem) {
+        this.placeNewNode(parent, pickerItem);
       }
+      //console.log(row, col, parentId, );
 
-      if (+id) {
-        const pickerItem = this.pickerItems.find((e) => e.id === +id);
-        if (pickerItem) {
-          this.placeAt(col, row, {
-            ...pickerItem,
-            id: nanoid(),
-            x: col,
-            y: row,
-          });
-        }
-      } else {
-        const sceneItem = this.scene.find((e) => e.id === id);
-        this.placeAt(col, row, sceneItem);
+      // if (
+      //   col < 0 ||
+      //   col > this.maxCol - 1 ||
+      //   row < 0 ||
+      //   row > this.maxRow - 1
+      // ) {
+      //   return;
+      // }
+
+      // if (+id) {
+      //   const pickerItem = this.pickerItems.find((e) => e.id === +id);
+      //   if (pickerItem) {
+      //     this.placeAt(col, row, {
+      //       ...pickerItem,
+      //       id: nanoid(),
+      //       x: col,
+      //       y: row,
+      //     });
+      //   }
+      // } else {
+      //   const sceneItem = this.scene.find((e) => e.id === id);
+      //   this.placeAt(col, row, sceneItem);
+      // }
+    },
+    placeNewNode(parent, pickerItem) {
+      const parentId = parent.id;
+      if (parent.left && parent.right) {
+        return false;
       }
+      const node = {
+        ...pickerItem,
+        id: this.nextId,
+        parent: parentId,
+      };
+      if (parent.left) {
+        parent.right = node.id;
+      } else {
+        parent.left = node.id;
+      }
+      const scene = [
+        ...this.scene.map((e) => (e.id === parentId ? parent : e)),
+        node,
+      ];
+      this.updateScene(scene);
     },
     onDelete(event) {
-      const id = event.dataTransfer.getData("id");
-      if (+id) {
+      const id = +event.dataTransfer.getData("id");
+      const parent = this.scene.find((e) => e.left === id || e.right === id);
+      if (!parent) {
         return;
       }
-      const scene = this.scene.filter((e) => e.id !== id);
+      if (parent.left === id) {
+        this.deleteSubtree(parent, true);
+      }
+      if (parent.right === id) {
+        this.deleteSubtree(parent, false);
+      }
+    },
+    deleteSubtree(parent, left) {
+      const map = this.scene.reduce((map, item) => {
+        map[item.id] = item;
+        return map;
+      }, {});
+      const nodesToDelete = [];
+      const startFrom = left ? parent.left : parent.right;
+      const walk = (node) => {
+        if (node.left) {
+          walk(map[node.left]);
+        }
+        if (node.right) {
+          walk(map[node.right]);
+        }
+        nodesToDelete.push(node.id);
+      };
+      walk(map[startFrom]);
+      const newParent = { ...parent };
+      if (left) {
+        delete newParent.left;
+      } else {
+        delete newParent.right;
+      }
+      const scene = this.scene
+        .filter((e) => !nodesToDelete.includes(e.id))
+        .map((e) => (e.id === parent.id ? newParent : e));
       this.updateScene(scene);
     },
     getChildren(index) {
@@ -427,6 +524,7 @@ export default {
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
   .trash-can {
     height: 200;
     font-size: 75px;
@@ -441,6 +539,6 @@ export default {
   position: relative;
   background-color: #ccc;
   display: flex;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 </style>

@@ -1,5 +1,12 @@
 <template>
-  <div class="node" :style="nodeStyle" v-text="content" />
+  <div
+    class="node"
+    :style="nodeStyle"
+    v-text="content"
+    draggable="true"
+    @dragstart="startDrag"
+    @dragend="dragEnd"
+  />
   <LineConnector
     v-if="singleChild"
     :fromX="centralConnectionPoint.x"
@@ -26,34 +33,6 @@
     stroke="4"
     radius="24"
   />
-
-  <!-- <template v-if="bothChildren">
-    <SideConnector
-      :fromX="leftConnectionPoint.x"
-      :fromY="leftConnectionPoint.y"
-      :toX="leftChildConnection.x"
-      :toY="leftChildConnection.y"
-      stroke="4"
-      radius="24"
-    />
-    <SideConnector
-      :fromX="rightConnectionPoint.x"
-      :fromY="rightConnectionPoint.y"
-      :toX="rightChildConnection.x"
-      :toY="rightChildConnection.y"
-      stroke="4"
-      radius="24"
-    />
-  </template>
-  <template v-else-if="singleChild">
-    <LineConnector
-      :fromX="centralConnectionPoint.x"
-      :fromY="centralConnectionPoint.y"
-      :toX="singleChildConnection.x"
-      :toY="singleChildConnection.y"
-      stroke="4"
-    />
-  </template> -->
 </template>
 <script>
 import LineConnector from "./LineConnector.vue";
@@ -89,24 +68,6 @@ export default {
         y: this.top,
       };
     },
-    // leftChildCoords() {
-    //   if (!this.leftConnecton) {
-    //     return {};
-    //   }
-    //   return {
-    //     x: this.leftConnecton.x,
-    //     y: this.leftConnecton.y,
-    //   };
-    // },
-    // rightChildCoords() {
-    //   if (!this.rightConnecton) {
-    //     return {};
-    //   }
-    //   return {
-    //     x: this.rightConnecton.x,
-    //     y: this.rightConnecton.y,
-    //   };
-    // },
     nodeStyle() {
       return {
         left: `${this.x}px`,
@@ -142,6 +103,21 @@ export default {
       if (this.rightConnection) {
         return this.rightConnection;
       }
+    },
+  },
+  methods: {
+    startDrag(event) {
+      event.dataTransfer.dropEffect = "move";
+      event.dataTransfer.effectAllowed = "move";
+      const deltaX = this.size / 2 - event.offsetX;
+      const deltaY = this.size / 2 - event.offsetY;
+      event.dataTransfer.setData("id", this.id);
+      event.dataTransfer.setData("shiftX", deltaX);
+      event.dataTransfer.setData("shiftY", deltaY);
+      this.dragging = true;
+    },
+    dragEnd() {
+      this.dragging = false;
     },
   },
 };
