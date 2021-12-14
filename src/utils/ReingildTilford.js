@@ -55,7 +55,7 @@ export default function ReingoldTilford(nodes, rootId) {
     }
     if (node.left && node.right) {
       node.modifier =
-        node.x - (getNode(node.right).x + getNode(node.left).x) / 2;
+        node.x - Math.ceil((getNode(node.right).x + getNode(node.left).x) / 2);
     } else if (node.left || node.right) {
       node.modifier = node.x;
     }
@@ -152,9 +152,9 @@ export default function ReingoldTilford(nodes, rootId) {
       centerFinalX(getNode(node.right));
     }
     if (node.left && node.right) {
-      const leftX = map[node.left].final;
-      const rightX = map[node.right].final;
-      node.final = Math.round(leftX + rightX) / 2;
+      const leftX = +map[node.left].final;
+      const rightX = +map[node.right].final;
+      node.final = Math.round((leftX + rightX) / 2);
     } else if (node.left) {
       const leftX = map[node.left].final;
       if (leftX !== node.final) {

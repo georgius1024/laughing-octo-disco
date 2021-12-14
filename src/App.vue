@@ -313,7 +313,7 @@ export default {
     onDrop(event) {
       const { offsetLeft, offsetTop, scrollLeft, scrollTop } =
         this.$refs.canvas;
-      const id = +event.dataTransfer.getData("id");
+      const id = event.dataTransfer.getData("id");
       const coords = {
         x: event.pageX - offsetLeft + scrollLeft,
         y: event.pageY - offsetTop + scrollTop,
@@ -329,7 +329,7 @@ export default {
       if (pickerItem) {
         return this.placeNewNode(parent, pickerItem);
       }
-      const sceneItem = this.scene.find((e) => e.id === id);
+      const sceneItem = this.scene.find((e) => e.id === +id);
       if (sceneItem) {
         return this.moveNode(parent, sceneItem);
       }
