@@ -10,6 +10,8 @@
         :color="item.color"
         :content="item.content"
         :key="item.id"
+        :rejected="item.id === rejected"
+        @drag="dragging = $event"
       />
       <div class="separator"></div>
       <div
@@ -92,6 +94,7 @@
           :leftConnection="connectionPoint(item.left)"
           :rightConnection="connectionPoint(item.right)"
           :rejected="item.id === rejected"
+          @drag="dragging = $event"
         />
       </template>
     </main>
@@ -124,6 +127,7 @@ export default {
     return {
       history: null,
       rejected: null,
+      dragging: null,
       maxCol: 0,
       maxRow: 0,
     };
@@ -329,6 +333,7 @@ export default {
         return item.x === col && item.y === row;
       });
       if (!parent) {
+        this.reject(this.dragging);
         return;
       }
       const pickerItem = this.pickerItems.find((e) => e.id === id);

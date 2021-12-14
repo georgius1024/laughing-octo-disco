@@ -117,6 +117,7 @@ export default {
   },
   methods: {
     startDrag(event) {
+      this.$emit("drag", this.id);
       event.dataTransfer.dropEffect = "move";
       event.dataTransfer.effectAllowed = "move";
       const deltaX = this.size / 2 - event.offsetX;
